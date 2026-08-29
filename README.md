@@ -16,14 +16,7 @@ days_since_prior_order is capped at 30
 order_dow (day of week) encoding is inferred from community convention, not officially documented
 
 - Project Structure:
-├── sql/
-│   ├── 01_data_quality/        # Integrity checks & cleanup scripts
-│   ├── 02_modelling/           # Data model created with PK and FK
-│   └── 03_analysis/            # 20+ business queries across 6 categories               
-├── docs/
-│   └── 01_data_cleaning_and_modelling.pdf    # Data preparation and modelling doc
-│   ├── 02_sql_insight_report.pdf             # Insight reports with recommendations
-└── README.md
+<img width="604" height="176" alt="image" src="https://github.com/user-attachments/assets/ff8260e8-e78c-4757-89bd-773a47e37eab" />
 
 - Data Quality & Integrity:
 Identified and resolved orphaned orders (orders with no associated product data) via backup-then-delete.
@@ -53,7 +46,7 @@ Rationale for each boundary is documented in sql/03_analysis/churn_and_predictio
 
 - Known Constraints:
 1. SQL Server Express memory ceiling (~1.4 GB buffer pool): forces disk spills during heavy aggregation/DISTINCT operations. Addressed via temp tables with indexes, CTE splitting, and checking execution plans for Sort spill warnings before adding indexes (Express's memory ceiling is the root cause, not missing indexes).
-Small-sample noise: minimum volume thresholds applied before ranking products/departments to avoid misleading results from low-count items.
+2. Small-sample noise: minimum volume thresholds applied before ranking products/departments to avoid misleading results from low-count items.
 
 - Author:
 Built by Joyita Sadhukhan as a portfolio project demonstrating SQL analytics and data quality remediation.
