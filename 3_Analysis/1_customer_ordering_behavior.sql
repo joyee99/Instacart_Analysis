@@ -53,4 +53,34 @@ tier as(
 select customer_segment, count(*) as total_users, round(cast(count(*) as float)/sum(count(*)) over() * 100,2) AS pct_of_customers
 from tier group by customer_segment order by 2 desc;
 
-		 
+
+
+-- 4. Basket Size
+
+with basket as(
+	select o.user_id, count(distinct o.order_id) as total_orders, count(op.product_id) as total_items,
+	round(cast(count(op.product_id) as float)/count(distinct o.order_id),2) as avg_basket_size
+	from orders o join order_products op 
+	on o.order_id=op.order_id
+	group by o.user_id
+),
+bins as(
+select  user_id,
+		case when avg_basket_size between 1.0 and 10.9 then '1-10 small size'
+			 when avg_basket_size between 11.0 and 30.9 then '11-30 mid size'
+			 else '30+ large size'
+		end as basket_bins
+from basket
+)
+select basket_bins, count(*) as total_users, 
+round(cast(count(*) as float)/sum(count(*)) over() * 100,2) as cust_pct
+from bins
+group by basket_bins
+order by 1;
+
+-- 4a. Avg basket size.
+select count(distinct user_id) as total_users,
+	   count(op.product_id) as total_items,
+	   round(cast(count(op.product_id) as float)/count(distinct o.order_id),2) as avg_basket_size
+from orders o join order_products op 
+on o.order_id=op.order_id;	 
