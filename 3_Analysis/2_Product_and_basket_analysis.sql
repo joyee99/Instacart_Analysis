@@ -68,3 +68,65 @@ where ranks <= 20
   and product_id not in (select product_id from top20 where ranks <= 20)
 order by ranks;
 
+-- 2b. percentage of top20 products according to overall items.
+
+select 
+    (select count(distinct order_id) from order_products) as total_orders,
+    (select count(*) from (
+        select order_id from order_products group by order_id having count(*) >= 20
+    ) x) as large_orders_20plus,
+    round(cast((select count(*) from (
+        select order_id from order_products group by order_id having count(*) >= 20
+    ) x) as float)/(select count(distinct order_id) from order_products),2) as pct;
+
+
+
+-- 3. mostly bought together
+
+Drop table if exists popular_products;
+
+select top 300 
+product_id, count(product_id) as repeated_times
+into popular_products 
+from order_products 
+group by product_id 
+order by 2 desc;
+
+create index idx_pp on popular_products(product_id);
+
+
+Drop table if exists filtered_products;
+
+select distinct 
+order_id, product_id into filtered_products
+from order_products
+where product_id in (select product_id from popular_products)
+and order_id in (select order_id from order_products group by order_id having count(*)>=20);
+
+create index idx_fp on filtered_products(order_id, product_id);
+
+
+with frequently_bought_together as(
+	select p1.product_id as product_1, p2.product_id as product_2, count(*) as buying_freq
+	from filtered_products fp1 join filtered_products fp2 
+	on fp1.order_id = fp2.order_id and fp1.product_id<fp2.product_id
+	join products p1 on fp1.product_id=p1.product_id
+	join products p2 on fp2.product_id=p2.product_id
+	group by p1.product_id, p2.product_id
+),
+pairs_with_names as (
+    select p1.product_name as product_1,
+           p2.product_name as product_2,
+           sum(fb.buying_freq) as buying_freq
+    from frequently_bought_together fb join products p1 
+    on fb.product_1=p1.product_id
+    join products p2 
+    on fb.product_2=p2.product_id
+    where p1.product_name != 'unknown'
+      and p2.product_name != 'unknown'
+      and p1.product_name IS NOT NULL
+      and p2.product_name IS NOT NULL
+    group by p1.product_name, p2.product_name
+)
+select top 20 product_1,product_2,buying_freq from pairs_with_names order by 3 desc;
+
