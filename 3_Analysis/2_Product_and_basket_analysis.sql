@@ -130,3 +130,12 @@ pairs_with_names as (
 )
 select top 20 product_1,product_2,buying_freq from pairs_with_names order by 3 desc;
 
+
+
+-- 5. products per department
+
+select d.department_id, d.department, count(p.product_id) as total_items
+from departments d join products p 
+on d.department_id=p.department_id
+group by d.department, d.department_id
+order by 3 desc;
