@@ -139,3 +139,29 @@ from departments d join products p
 on d.department_id=p.department_id
 group by d.department, d.department_id
 order by 3 desc;
+
+-- 5a. Catalog size vs. sales volume per department (demand concentration)
+
+with catalog_size as (
+    select d.department_id, d.department, count(p.product_id) as catalog_size
+    from departments d 
+    join products p on d.department_id = p.department_id
+    group by d.department, d.department_id
+),
+sales_volume as (
+    select d.department_id, count(op.product_id) as total_items_sold
+    from departments d 
+    join products p on d.department_id = p.department_id
+    join order_products op on p.product_id = op.product_id
+    group by d.department_id
+)
+select 
+    c.department, 
+    c.catalog_size, 
+    dense_rank() over(order by c.catalog_size desc) as catalog_rank,
+    s.total_items_sold,
+    dense_rank() over(order by s.total_items_sold desc) as total_items_sold_rank,
+    round(cast(s.total_items_sold as float) / c.catalog_size, 1) as avg_selling_items_per_dept
+from catalog_size c
+join sales_volume s on c.department_id = s.department_id
+order by 5;
