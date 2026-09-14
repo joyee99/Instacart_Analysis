@@ -34,3 +34,37 @@ select
 from top20;
 
 
+
+-- 2. first pick orders
+
+with most_first_picked as(
+	select op.product_id, p.product_name, count(op.product_id) as times_added_first,
+	DENSE_RANK() over(order by count(op.product_id) desc) as ranks
+	from products p join order_products op 
+	on p.product_id=op.product_id
+	where add_to_cart_order=1 
+	group by op.product_id,p.product_name
+)
+select * from most_first_picked where ranks<=20;
+
+-- 2a. Products in "first-added" top 20 but NOT in overall top-20 best-sellers
+
+with top20 as (
+    select product_id,
+    dense_rank() over(order by count(product_id) desc) as ranks
+    from order_products 
+    group by product_id
+),
+first_pick_top20 as (
+    select op.product_id, p.product_name, count(op.product_id) as times_added_first,
+    dense_rank() over(order by count(op.product_id) desc) as ranks
+    from products p join order_products op on p.product_id = op.product_id
+    where op.add_to_cart_order = 1
+    group by op.product_id, p.product_name
+)
+select product_id,product_name, times_added_first, ranks as first_pick_rank
+from first_pick_top20
+where ranks <= 20
+  and product_id not in (select product_id from top20 where ranks <= 20)
+order by ranks;
+
