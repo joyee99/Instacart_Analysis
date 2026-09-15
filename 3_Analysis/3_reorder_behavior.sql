@@ -55,3 +55,18 @@ with one_time_customer as(
 	group by d.department_id, d.department
 )
 select * from one_time_customer where one_time_rate>=60.00 order by one_time_rate desc;
+
+
+
+-- 4. Reorder rate by Cart Position. (is reorder rate high for cart position 1-3 than others?)
+with reorder_cart as(
+	select add_to_cart_order as cart_position, count(product_id) as total_items,
+	sum(reordered) as total_reorders,
+	round(cast(sum(reordered) as float)*100.0/count(product_id),2) as reordered_pct
+	from order_products
+	group by add_to_cart_order having count(product_id)>=500
+),
+cart_ranks as(
+	select *, DENSE_RANK() over(order by reordered_pct desc) as ranks from reorder_cart
+)
+select * from cart_ranks where ranks<=20;
