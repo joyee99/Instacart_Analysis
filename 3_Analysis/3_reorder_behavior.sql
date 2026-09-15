@@ -31,3 +31,27 @@ select product_id,product_name,reorder_pct from pct_rank where ranks<=20;
 
 
 
+-- 3. Reorder rate by departments.
+-- 3.1) Mostly reordered
+with loyal_buyers as(
+	select d.department_id, d.department,
+		round(cast(sum(op.reordered) as float)*100.0/count(op.product_id),2) as reorder_rate
+	from departments d join products p
+	on d.department_id=p.department_id
+	join order_products op
+	on p.product_id=op.product_id
+	group by d.department_id, d.department
+)
+select * from loyal_buyers where reorder_rate>=60.00 order by reorder_rate desc;
+
+-- 3.2) Mostly One-time purchased.
+with one_time_customer as(
+	select d.department_id, d.department,
+		round(cast(sum(case when op.reordered=0 then 1 end) as float)*100.0/count(op.product_id),2) as one_time_rate
+	from departments d join products p
+	on d.department_id=p.department_id
+	join order_products op
+	on p.product_id=op.product_id
+	group by d.department_id, d.department
+)
+select * from one_time_customer where one_time_rate>=60.00 order by one_time_rate desc;
