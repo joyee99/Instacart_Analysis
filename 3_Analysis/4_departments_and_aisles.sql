@@ -49,3 +49,23 @@ aisle_rnk as(
     on a.aisle_id=ao.aisle_id
 )
 select * from aisle_rnk where ranks<=10;
+
+
+
+-- 3. Best retention aisles and departments
+with reorder_rates as(
+select a.aisle_id, a.aisle, d.department,
+round(cast(sum(op.reordered) as float)*100.0/count(op.order_id),2) as total_reordered_pct
+from aisles a join products p 
+on a.aisle_id=p.aisle_id
+join departments d
+on d.department_id=p.department_id
+join order_products op
+on op.product_id=p.product_id
+group by a.aisle, a.aisle_id, d.department
+),
+reorder_ranks as(
+select *, DENSE_RANK() over(order by total_reordered_pct desc) as ranks
+from reorder_rates
+)
+select * from reorder_ranks where ranks<=10;
