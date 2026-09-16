@@ -26,3 +26,26 @@ select * from dept_rnk where ranks<=10;
 
 
 
+-- 2. Aisle order-reach with % of total orders
+create index idx_products_aisle_id 
+on products(aisle_id) include (product_id);
+
+with aisle_orders as(
+    select p.aisle_id, d.department, count(distinct op.order_id) as total_orders
+    from products p join order_products op
+    on p.product_id=op.product_id
+    join departments d
+    on d.department_id=p.department_id
+    group by p.aisle_id, d.department
+),
+overall as(
+    select count(*) as overall_orders from orders
+),
+aisle_rnk as(
+    select a.aisle, ao.department, ao.total_orders,
+    round(cast(ao.total_orders as float)/(select overall_orders from overall)*100,2) as aisle_pct,
+    dense_rank() over(order by ao.total_orders desc) as ranks
+    from aisles a join aisle_orders ao 
+    on a.aisle_id=ao.aisle_id
+)
+select * from aisle_rnk where ranks<=10;
