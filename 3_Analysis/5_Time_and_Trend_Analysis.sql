@@ -47,3 +47,29 @@ round(cast(count(order_id) as float)/(select overall_orders from overall)*100,2)
 from orders 
 group by order_dow 
 order by 3 desc;
+
+
+
+-- 3. AVG basket size by day of week
+create index idx_order_products_order_id 
+on order_products(order_id) include (product_id);
+
+with basket as(
+	select order_id, count(product_id) as basket_size
+	from order_products
+	group by order_id
+)
+select order_dow, 
+case when order_dow=0 then 'Saturday'
+	 when order_dow=1 then 'Sunday'
+	 when order_dow=2 then 'Monday'
+	 when order_dow=3 then 'Tuesday'
+	 when order_dow=4 then 'Wednesday'
+	 when order_dow=5 then 'Thursday'
+	 when order_dow=6 then 'Friday'
+end as day_name,
+round(avg(cast(b.basket_size as float)),2) as avg_basket_size
+from orders o join basket b
+on o.order_id=b.order_id
+group by order_dow 
+order by 3 desc;
