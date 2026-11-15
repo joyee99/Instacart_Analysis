@@ -3,7 +3,7 @@
 An end-to-end data analytics project built on the public **Instacart Market Basket** dataset. It goes from raw relational data to stakeholder-ready insights through data quality remediation, 20+ business SQL queries, customer segmentation and a Power BI dashboard. Every reported figure can be traced back to a reproducible SQL query.
 
 ![SQL Server](https://img.shields.io/badge/SQL%20Server-CC2927?logo=microsoftsqlserver&logoColor=white)
-![Python](https://img.shields.io/badge/python%-CC2927?logo=microsoftsqlserver&logoColor=white)
+![Python](https://img.shields.io/badge/python%20-CC2927?logo=microsoftsqlserver&logoColor=white)
 ![Power BI](https://img.shields.io/badge/Power%20BI-F2C811?logo=powerbi&logoColor=black)
 
 ---
